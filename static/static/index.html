@@ -1,0 +1,13 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>YTALSEG Apontamento V31</title><link rel="stylesheet" href="style.css"></head><body>
+<div class="app no-print"><aside class="sidebar"><div class="side-logo">YTALSEG</div><div class="side-sub">APONTAMENTO</div><button class="nav active" data-tab="gerar">📄 Gerar Apontamento</button><button class="nav" data-tab="empresas">🏢 Empresas</button><button class="nav" id="menuPreview">👁 Visualizar PDF</button><button class="nav" id="menuSave">💾 Salvar PDF</button><button class="nav" id="menuPrint">🖨 Imprimir</button></aside>
+<main class="workspace"><section id="tabGerar" class="panel tab active"><h1>YTALSEG Apontamento</h1><div class="form-grid"><label>Empresa<select id="empresaSelect"></select></label><label>Mês<select id="mesSelect"></select></label><label>Ano<input id="anoInput" type="number" min="2020" max="2100"></label></div><div class="hora-grid">
+        <label>Dia<input id="horaDia" type="number" min="1" max="31" placeholder="Ex: 1"></label>
+        <label>Serviço / local<input id="servicoLocal" placeholder="Ex: ALA 05 ou FÁBRICA GERAL"></label>
+        <label>Horário diurno<input id="horaDiurno" placeholder="Ex: 07:00 - 18:00"></label>
+        <label>Horário noturno<input id="horaNoturno" placeholder="Ex: 19:00 - 05:00"></label>
+        <button id="btnAddHorario" class="primary">Adicionar no dia</button><button id="btnAddHorarioMes" class="primary">Aplicar no mês todo</button>
+      </div>
+      <div class="hint">Também é possível clicar direto nas células de serviço/local, horário diurno ou horário noturno para editar antes de imprimir.</div>
+      <div class="actions"><button id="btnUpdate" class="primary">Atualizar</button><button id="btnPreview" class="primary">Visualizar PDF</button><button id="btnSave" class="primary">Salvar PDF</button><button id="btnPrint" class="primary">Imprimir</button><button id="btnLimpar" class="danger">Limpar tabela</button></div></section>
+<section id="tabEmpresas" class="panel tab"><h1>Empresas cadastradas</h1><div class="actions"><input id="novaEmpresa" placeholder="Nova empresa"><button id="btnAddEmpresa" class="primary">+ Adicionar</button></div><div id="listaEmpresas" class="lista"></div></section></main></div>
+<div class="preview-wrap"><canvas id="sheetCanvas" width="1024" height="1536"></canvas><img id="printImage" alt=""></div><script src="script.js"></script></body></html>
