@@ -149,6 +149,15 @@ window.preparePrintImage=function(){document.getElementById('printImage').src=ca
 function fileName(prefix){const emp=(empresaSelect.value||'EMPRESA').replace(/[^\\wÀ-ÿ]+/g,'_');return`${prefix}_${emp}_${meses[Number(mesSelect.value)]}_${anoInput.value}.pdf`}
 function previewPDF(){render();window.print()}
 function savePDF(){render();window.print()}
+function limparTabela(){
+ if(!confirm('Tem certeza que deseja limpar TODOS os servicos/locais e horarios desta tabela? Esta acao nao pode ser desfeita.')) return;
+ horarios = {};
+ if(typeof servicoLocal!=='undefined' && servicoLocal) servicoLocal.value='';
+ if(typeof horaDiurno!=='undefined' && horaDiurno) horaDiurno.value='';
+ if(typeof horaNoturno!=='undefined' && horaNoturno) horaNoturno.value='';
+ if(typeof horaDia!=='undefined' && horaDia) horaDia.value='';
+ render();
+}
 function printPage(){render();window.print()}
 function tab(name){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
 
@@ -224,7 +233,7 @@ listaEmpresas.addEventListener('click',(e)=>{
  if(!nome)return;
  if(btn.classList.contains('btn-excluir-empresa')) excluirEmpresa(nome);
 });
-document.querySelectorAll('.nav[data-tab]').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));document.getElementById('btnAddEmpresa').addEventListener('click',addEmpresa);document.getElementById('btnAddHorario').addEventListener('click',adicionarHorarioPorBotao);document.getElementById('btnAddHorarioMes').addEventListener('click',aplicarHorarioMesTodo);document.getElementById('btnUpdate').addEventListener('click',render);document.getElementById('btnPreview').addEventListener('click',previewPDF);document.getElementById('menuPreview').addEventListener('click',previewPDF);document.getElementById('btnSave').addEventListener('click',savePDF);document.getElementById('menuSave').addEventListener('click',savePDF);document.getElementById('btnPrint').addEventListener('click',printPage);document.getElementById('menuPrint').addEventListener('click',printPage);empresaSelect.addEventListener('change',render);mesSelect.addEventListener('change',render);anoInput.addEventListener('input',render);
+document.querySelectorAll('.nav[data-tab]').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));document.getElementById('btnAddEmpresa').addEventListener('click',addEmpresa);document.getElementById('btnAddHorario').addEventListener('click',adicionarHorarioPorBotao);document.getElementById('btnAddHorarioMes').addEventListener('click',aplicarHorarioMesTodo);document.getElementById('btnUpdate').addEventListener('click',render);document.getElementById('btnPreview').addEventListener('click',previewPDF);document.getElementById('menuPreview').addEventListener('click',previewPDF);document.getElementById('btnSave').addEventListener('click',savePDF);document.getElementById('menuSave').addEventListener('click',savePDF);document.getElementById('btnPrint').addEventListener('click',printPage);document.getElementById('btnLimpar').addEventListener('click',limparTabela);document.getElementById('menuPrint').addEventListener('click',printPage);empresaSelect.addEventListener('change',render);mesSelect.addEventListener('change',render);anoInput.addEventListener('input',render);
 meses.forEach((m,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=m;mesSelect.appendChild(op)});const now=new Date();mesSelect.value=String(now.getMonth());anoInput.value=now.getFullYear();carregarEmpresas('GEO AMBIENTE');render();
 logoWatermark.onload = render;
 logoWatermark.onerror = function(){ console.warn('logo nao carregou, seguindo sem ela'); render(); };
