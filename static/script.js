@@ -221,7 +221,7 @@ function adicionarHorarioPorBotao(){
  render();
 }
 
-document.querySelectorAll('.nav[data-tab]').forEach(b=>b.classList.remove('active'));document.getElementById(name==='empresas'?'tabEmpresas':'tabGerar').classList.add('active');const btn=document.querySelector(`.nav[data-tab="${name}"]`);if(btn)btn.classList.add('active')}
+document.querySelectorAll('.nav[data-tab]').forEach(b=>b.classList.remove('active'));const mapaAbas={empresas:'tabEmpresas',usuarios:'tabUsuarios',gerar:'tabGerar'};const alvo=document.getElementById(mapaAbas[name]||'tabGerar');if(alvo)alvo.classList.add('active');const btn=document.querySelector(`.nav[data-tab="${name}"]`);if(btn)btn.classList.add('active')}
 
 
 function aplicarHorarioMesTodo(){
