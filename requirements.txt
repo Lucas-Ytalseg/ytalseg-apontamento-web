@@ -1,0 +1,1 @@
+# Projeto Python - usa apenas a biblioteca padrao (http.server).
