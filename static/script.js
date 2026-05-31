@@ -138,7 +138,7 @@ function drawPhone(x,y,phone,name){
 function drawLayout(){
  ctx.fillStyle='white';ctx.fillRect(0,0,1024,1536);
  txt('YTALSEG',35,62,390,82,green,true,'left','Times New Roman');
- txt('ACESSORIA E SEGURANÇA DO TRABALHO.',43,126,390,19,green,true,'left','Arial');
+ txt('ASSESSORIA E SEGURANÇA DO TRABALHO.',43,126,390,19,green,true,'left','Arial');
  txt('EMPRESA',474,42,184,16,green,true,'left','Arial');txt('MÊS',686,42,142,16,green,true,'left','Arial');txt('ANO',854,42,124,16,green,true,'left','Arial');
  roundRect(474,61,184,58,6,'#fff','#777');roundRect(686,61,142,58,6,'#fff','#777');roundRect(854,61,124,58,6,'#fff','#777');
  ctx.fillStyle=green;ctx.fillRect(20,153,984,7);
