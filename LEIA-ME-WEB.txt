@@ -1,16 +1,20 @@
-YTALSEG APONTAMENTO - VERSAO WEB (nuvem)
+YTALSEG APONTAMENTO - VERSAO WEB COM LOGIN
 
-O que e: a versao web do app de apontamento, para rodar no navegador
-do notebook e do celular (mesma URL), sem precisar instalar nada.
+O que e: app de apontamento na nuvem, com tela de login individual.
+- Somente o admin cadastra/edita/remove usuarios (aba "Usuarios").
+- Senhas guardadas com hash (seguras, nunca em texto puro).
+- Os usuarios ficam no banco no Volume do Railway (nao somem em redeploy).
 
-Como gera PDF: pela impressao do navegador (botoes Visualizar/Salvar/Imprimir
-todos abrem a impressao - no PC salve como PDF, no celular use compartilhar/salvar PDF).
+IMPORTANTE - precisa de Volume no Railway montado em /data
+e a variavel DATA_DIR=/data (igual ao ERP).
 
-Estrutura:
-  server.py          -> servidor web minimo (FastAPI) que serve o site
-  static/            -> o site de verdade (index.html, style.css, script.js)
-  requirements.txt   -> dependencias Python
-  railway.json       -> configuracao de deploy no Railway
-  Procfile           -> comando de inicio (reforco)
+Admin inicial: definido pela variavel ADMIN_USER / ADMIN_SENHA
+(ou o padrao no codigo). Troque a senha pela aba Usuarios apos subir.
 
-Os dados (empresas) ficam salvos no navegador (localStorage), por aparelho.
+Arquivos:
+  server.py          -> backend FastAPI (login + usuarios + serve o site)
+  static/login.html  -> tela de login (porta de entrada)
+  static/index.html  -> o app (protegido por login)
+  static/script.js   -> logica do app + login + admin
+  requirements.txt   -> fastapi, uvicorn
+  railway.json/Procfile/nixpacks.toml -> deploy

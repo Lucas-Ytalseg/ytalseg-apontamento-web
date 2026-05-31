@@ -1,3 +1,32 @@
+// ===== Protecao de login (porta de entrada) =====
+const TOKEN = localStorage.getItem('ytalseg_token') || '';
+const PERFIL = localStorage.getItem('ytalseg_perfil') || 'usuario';
+const NOME_USUARIO = localStorage.getItem('ytalseg_nome') || '';
+if(!TOKEN){ window.location.href = 'login.html'; }
+
+function authHeaders(extra){
+  return Object.assign({'Authorization':'Bearer '+TOKEN}, extra||{});
+}
+async function apiGet(url){
+  const r = await fetch(url, {headers: authHeaders()});
+  if(r.status === 401){ sairDoApp(); return null; }
+  return r.json();
+}
+async function apiSend(url, method, body){
+  const r = await fetch(url, {method, headers: authHeaders({'Content-Type':'application/json'}),
+                             body: body?JSON.stringify(body):undefined});
+  if(r.status === 401){ sairDoApp(); return {status:'erro'}; }
+  return r.json();
+}
+function sairDoApp(){
+  const t = localStorage.getItem('ytalseg_token');
+  if(t){ fetch('/api/logout',{method:'POST',headers:{'Authorization':'Bearer '+t}}).catch(()=>{}); }
+  localStorage.removeItem('ytalseg_token');
+  localStorage.removeItem('ytalseg_perfil');
+  localStorage.removeItem('ytalseg_nome');
+  window.location.href = 'login.html';
+}
+
 
 const meses=['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
 const diasSemana=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
@@ -277,3 +306,86 @@ canvas.addEventListener('click',(e)=>{
    }
  }
 });
+
+// ===== Saudacao, botao Sair e aba Usuarios (admin) =====
+(function configurarAcesso(){
+  // Mostra a aba Usuarios so para admin
+  if(PERFIL === 'admin'){
+    const mu = document.getElementById('menuUsuarios');
+    if(mu) mu.style.display = '';
+  }
+  // Botao Sair
+  const bs = document.getElementById('btnSair');
+  if(bs) bs.addEventListener('click', function(){
+    if(confirm('Deseja sair do sistema?')) sairDoApp();
+  });
+  // Mostra o nome de quem entrou no subtitulo da sidebar
+  const sub = document.querySelector('.side-sub');
+  if(sub && NOME_USUARIO) sub.textContent = 'APONTAMENTO • ' + NOME_USUARIO;
+})();
+
+async function carregarUsuarios(){
+  const box = document.getElementById('listaUsuarios');
+  if(!box) return;
+  const data = await apiGet('/api/usuarios');
+  if(!data || data.status !== 'ok'){ box.innerHTML = '<div class="empresa-row">Não foi possível carregar.</div>'; return; }
+  box.innerHTML = '';
+  data.usuarios.forEach(function(u){
+    const row = document.createElement('div');
+    row.className = 'empresa-row';
+    row.style.gridTemplateColumns = '1fr auto auto auto';
+    const tag = u.perfil === 'admin' ? ' (admin)' : '';
+    row.innerHTML = '<div style="font-weight:900">' + escapeHtml(u.usuario) + tag +
+      (u.nome ? ' <span style="font-weight:600;color:#567">— ' + escapeHtml(u.nome) + '</span>' : '') + '</div>';
+    const bSenha = document.createElement('button');
+    bSenha.className = 'small primary'; bSenha.textContent = 'Trocar senha';
+    bSenha.addEventListener('click', function(){ trocarSenhaUsuario(u.usuario); });
+    const bDel = document.createElement('button');
+    bDel.className = 'small danger'; bDel.textContent = 'Excluir';
+    bDel.addEventListener('click', function(){ excluirUsuario(u.usuario); });
+    row.appendChild(bSenha);
+    row.appendChild(bDel);
+    box.appendChild(row);
+  });
+}
+
+async function criarUsuario(){
+  const usuario = (document.getElementById('novoUsuario').value || '').trim();
+  const nome = (document.getElementById('novoNome').value || '').trim();
+  const senha = document.getElementById('novaSenhaUser').value || '';
+  const perfil = document.getElementById('novoPerfil').value || 'usuario';
+  if(!usuario || !senha){ alert('Preencha usuário e senha.'); return; }
+  const data = await apiSend('/api/usuarios', 'POST', {usuario, nome, senha, perfil});
+  if(data && data.status === 'ok'){
+    document.getElementById('novoUsuario').value = '';
+    document.getElementById('novoNome').value = '';
+    document.getElementById('novaSenhaUser').value = '';
+    carregarUsuarios();
+  } else {
+    alert((data && data.detail) || 'Não foi possível cadastrar.');
+  }
+}
+
+async function trocarSenhaUsuario(usuario){
+  const nova = prompt('Nova senha para ' + usuario + ':');
+  if(nova === null) return;
+  if(!nova.trim()){ alert('Senha não pode ser vazia.'); return; }
+  const data = await apiSend('/api/usuarios/senha', 'POST', {usuario, nova_senha: nova});
+  if(data && data.status === 'ok') alert('Senha alterada com sucesso.');
+  else alert((data && data.detail) || 'Não foi possível trocar a senha.');
+}
+
+async function excluirUsuario(usuario){
+  if(!confirm('Excluir o acesso de "' + usuario + '"? Esta ação não pode ser desfeita.')) return;
+  const data = await apiSend('/api/usuarios/' + encodeURIComponent(usuario), 'DELETE');
+  if(data && data.status === 'ok') carregarUsuarios();
+  else alert((data && data.detail) || 'Não foi possível excluir.');
+}
+
+// Liga os botoes da aba usuarios (se existirem)
+(function(){
+  const bc = document.getElementById('btnCriarUsuario');
+  if(bc) bc.addEventListener('click', criarUsuario);
+  const mu = document.getElementById('menuUsuarios');
+  if(mu) mu.addEventListener('click', carregarUsuarios);
+})();

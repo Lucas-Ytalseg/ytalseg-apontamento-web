@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YTALSEG Apontamento - Entrar</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       background:linear-gradient(180deg,#071d15,#0c2634);font-family:Arial,Helvetica,sans-serif}
+  .box{background:#fff;border-radius:18px;padding:34px 28px;width:92%;max-width:360px;
+       box-shadow:0 18px 50px rgba(0,0,0,.35)}
+  .logo{color:#35bd68;font-family:Georgia,serif;font-size:40px;font-weight:900;text-align:center;
+        text-shadow:1px 1px #fff,2px 2px #003b19}
+  .sub{text-align:center;color:#0c2634;font-size:13px;letter-spacing:2px;margin-bottom:22px;font-weight:800}
+  label{display:block;color:#005b2a;font-weight:900;font-size:13px;margin:12px 0 5px}
+  input{width:100%;height:44px;border:1px solid #cfd8d2;border-radius:10px;padding:0 12px;font-size:16px}
+  button{width:100%;height:46px;border:0;border-radius:12px;margin-top:20px;background:#00a94f;color:#fff;
+         font-weight:900;font-size:16px;cursor:pointer}
+  button:hover{background:#019045}
+  .erro{color:#b91c1c;font-weight:800;font-size:13px;margin-top:12px;text-align:center;min-height:18px}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">YTALSEG</div>
+    <div class="sub">APONTAMENTO</div>
+    <label for="usuario">Usuário</label>
+    <input id="usuario" autocomplete="username" autocapitalize="none">
+    <label for="senha">Senha</label>
+    <input id="senha" type="password" autocomplete="current-password">
+    <button id="btnEntrar">Entrar</button>
+    <div class="erro" id="erro"></div>
+  </div>
+<script>
+  const $ = id => document.getElementById(id);
+  async function entrar(){
+    $('erro').textContent = '';
+    const usuario = $('usuario').value.trim();
+    const senha = $('senha').value;
+    if(!usuario || !senha){ $('erro').textContent = 'Preencha usuário e senha.'; return; }
+    try{
+      const r = await fetch('/api/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({usuario, senha})
+      });
+      const data = await r.json();
+      if(r.ok && data.status === 'ok'){
+        localStorage.setItem('ytalseg_token', data.token);
+        localStorage.setItem('ytalseg_perfil', data.perfil);
+        localStorage.setItem('ytalseg_nome', data.nome || data.usuario);
+        window.location.href = 'index.html';
+      } else {
+        $('erro').textContent = data.detail || 'Usuário ou senha inválidos.';
+      }
+    }catch(e){ $('erro').textContent = 'Erro de conexão. Tente de novo.'; }
+  }
+  $('btnEntrar').addEventListener('click', entrar);
+  $('senha').addEventListener('keydown', e => { if(e.key === 'Enter') entrar(); });
+  $('usuario').addEventListener('keydown', e => { if(e.key === 'Enter') $('senha').focus(); });
+</script>
+</body>
+</html>

@@ -5,3 +5,49 @@
 .hora-grid label:nth-child(2){min-width:220px}
 .hora-grid button{height:40px}
 .hint{font-size:12px;color:#555;margin-top:6px;font-weight:700}
+
+/* ===== AJUSTES PARA CELULAR (telas estreitas) ===== */
+@media (max-width: 820px){
+  /* Barra lateral vira um topo horizontal com rolagem */
+  .sidebar{
+    position:relative;width:auto;left:0;top:0;bottom:auto;
+    display:flex;align-items:center;gap:8px;overflow-x:auto;
+    padding:10px 12px;
+  }
+  .side-logo{font-size:24px;white-space:nowrap}
+  .side-sub{display:none}
+  .nav{width:auto;flex:0 0 auto;height:38px;margin:0;white-space:nowrap;font-size:13px;padding:0 12px}
+
+  /* Conteudo ocupa a tela inteira (sem margem da lateral) */
+  .workspace{margin-left:0;padding:12px}
+  .preview-wrap{margin-left:0;padding:10px 8px 40px;display:block}
+
+  /* Campos um embaixo do outro */
+  .form-grid{grid-template-columns:1fr;gap:10px}
+  .hora-grid{grid-template-columns:1fr;gap:10px}
+  .hora-grid label:nth-child(2){min-width:0}
+
+  /* Botoes ocupam a largura e quebram bem */
+  .actions{gap:8px}
+  .actions button{flex:1 1 auto;min-width:120px}
+  .hora-grid button{width:100%}
+
+  /* A folha (canvas) encolhe para caber na largura do celular,
+     mantendo a proporcao; pode rolar verticalmente */
+  #sheetCanvas{
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:1024 / 1536;
+  }
+
+  /* Lista de empresas/usuarios empilha */
+  .empresa-row{grid-template-columns:1fr;gap:6px}
+}
+
+/* Telas muito pequenas (celular em pe, bem estreito) */
+@media (max-width: 480px){
+  .workspace{padding:10px 8px}
+  .panel{padding:10px}
+  .side-logo{font-size:20px}
+  select,input{font-size:16px} /* 16px evita zoom automatico no iPhone */
+}
