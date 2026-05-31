@@ -68,6 +68,16 @@ def init_db():
         """
     )
     conn.commit()
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS empresas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT UNIQUE NOT NULL,
+            criado_em TEXT
+        )
+        """
+    )
+    conn.commit()
 
     # Cria admin inicial se ainda nao existir nenhum usuario
     n = conn.execute("SELECT COUNT(*) AS c FROM usuarios").fetchone()["c"]
@@ -241,6 +251,44 @@ def excluir_usuario(nome_user: str, u=Depends(exigir_admin)):
     conn = conectar()
     conn.execute("DELETE FROM usuarios WHERE usuario = ?", (nome_user,))
     conn.execute("DELETE FROM sessoes WHERE usuario = ?", (nome_user,))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+
+# ---------- Rotas de empresas (qualquer usuario logado) ----------
+class EmpresaPayload(BaseModel):
+    nome: str
+
+
+@app.get("/api/empresas")
+def listar_empresas(u=Depends(exigir_login)):
+    conn = conectar()
+    rows = conn.execute("SELECT nome FROM empresas ORDER BY nome").fetchall()
+    conn.close()
+    return {"status": "ok", "empresas": [r["nome"] for r in rows]}
+
+
+@app.post("/api/empresas")
+def criar_empresa(payload: EmpresaPayload, u=Depends(exigir_login)):
+    nome = (payload.nome or "").strip()
+    if not nome:
+        raise HTTPException(status_code=400, detail="Nome da empresa obrigatorio")
+    conn = conectar()
+    ja = conn.execute("SELECT 1 FROM empresas WHERE nome = ?", (nome,)).fetchone()
+    if ja:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Essa empresa ja existe")
+    conn.execute("INSERT INTO empresas (nome, criado_em) VALUES (?,?)", (nome, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "nome": nome}
+
+
+@app.delete("/api/empresas/{nome}")
+def excluir_empresa(nome: str, u=Depends(exigir_login)):
+    conn = conectar()
+    conn.execute("DELETE FROM empresas WHERE nome = ?", (nome.strip(),))
     conn.commit()
     conn.close()
     return {"status": "ok"}

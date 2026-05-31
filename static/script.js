@@ -44,15 +44,17 @@ function keyHorario(dia,tipo){ return `${anoInput.value}-${mesSelect.value}-${di
 
 
 function normalizarEmpresas(v){return [...new Set((v||[]).map(x=>String(x||'').trim().toUpperCase()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'))}
-function empresas(){
-  const salvas=JSON.parse(localStorage.getItem(EMPRESAS_KEY)||'null');
-  if(Array.isArray(salvas))return normalizarEmpresas(salvas);
-  const antigas=JSON.parse(localStorage.getItem(EMPRESAS_ANTIGO_KEY)||'[]');
-  const inicial=normalizarEmpresas([...empresasPadrao,...antigas]);
-  localStorage.setItem(EMPRESAS_KEY,JSON.stringify(inicial));
-  return inicial;
+// Empresas agora ficam no SERVIDOR (sincroniza entre aparelhos).
+// empresasCache guarda a lista em memoria; carregada ao abrir o app.
+let empresasCache = [];
+function empresas(){ return empresasCache; }
+async function recarregarEmpresasDoServidor(sel){
+  const data = await apiGet('/api/empresas');
+  if(data && data.status === 'ok'){
+    empresasCache = normalizarEmpresas(data.empresas || []);
+  }
+  carregarEmpresas(sel);
 }
-function setEmpresas(v){localStorage.setItem(EMPRESAS_KEY,JSON.stringify(normalizarEmpresas(v)))}
 function carregarEmpresas(sel){
   const atual=sel||empresaSelect.value;
   const lista=empresas();
@@ -70,36 +72,43 @@ function renderEmpresas(){
   if(!lista.length){listaEmpresas.innerHTML='<div class="empresa-row"><strong>Nenhuma empresa cadastrada.</strong></div>';return;}
   listaEmpresas.innerHTML=lista.map((e,i)=>`<div class="empresa-row"><strong>${escapeHtml(e)}</strong><button class="small danger btn-excluir-empresa" data-index="${i}">Excluir</button></div>`).join('');
 }
-function addEmpresa(){
+async function addEmpresa(){
   const nome=novaEmpresa.value.trim().toUpperCase();
   if(!nome)return;
-  const lista=empresas();
-  if(!lista.includes(nome)){lista.push(nome);setEmpresas(lista)}
-  novaEmpresa.value='';
-  carregarEmpresas(nome);
-  render();
+  const data = await apiSend('/api/empresas','POST',{nome});
+  if(data && data.status === 'ok'){
+    novaEmpresa.value='';
+    await recarregarEmpresasDoServidor(nome);
+    render();
+  } else {
+    alert((data && data.detail) || 'Nao foi possivel salvar a empresa.');
+  }
 }
-function editarEmpresa(nome){
+async function editarEmpresa(nome){
   const atual = String(nome||'').trim().toUpperCase();
   const novo=prompt('Editar nome da empresa:',atual);
   if(novo === null)return;
   const limpo=novo.trim().toUpperCase();
   if(!limpo){ alert('Nome da empresa não pode ficar vazio.'); return; }
-  let lista=empresas();
-  const idx=lista.indexOf(atual);
-  if(idx < 0){ alert('Empresa não encontrada. Atualize a lista e tente novamente.'); return; }
-  if(limpo !== atual && lista.includes(limpo)){ alert('Já existe uma empresa com esse nome.'); return; }
-  lista[idx]=limpo;
-  setEmpresas(lista);
-  carregarEmpresas(limpo);
+  if(limpo === atual) return;
+  if(empresas().includes(limpo)){ alert('Já existe uma empresa com esse nome.'); return; }
+  // cria o novo nome e remove o antigo no servidor
+  const c = await apiSend('/api/empresas','POST',{nome:limpo});
+  if(!(c && c.status === 'ok')){ alert((c && c.detail) || 'Nao foi possivel renomear.'); return; }
+  await apiSend('/api/empresas/'+encodeURIComponent(atual),'DELETE');
+  await recarregarEmpresasDoServidor(limpo);
   render();
 }
-function excluirEmpresa(nome){
+async function excluirEmpresa(nome){
   const atual = String(nome||'').trim().toUpperCase();
   if(!confirm(`Excluir empresa "${atual}"?`))return;
-  setEmpresas(empresas().filter(e=>e!==atual));
-  carregarEmpresas();
-  render();
+  const data = await apiSend('/api/empresas/'+encodeURIComponent(atual),'DELETE');
+  if(data && data.status === 'ok'){
+    await recarregarEmpresasDoServidor();
+    render();
+  } else {
+    alert((data && data.detail) || 'Nao foi possivel excluir a empresa.');
+  }
 }
 
 function pascoa(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=((h+l-7*m+114)%31)+1;return new Date(y,month-1,day)}
@@ -264,7 +273,7 @@ listaEmpresas.addEventListener('click',(e)=>{
  if(btn.classList.contains('btn-excluir-empresa')) excluirEmpresa(nome);
 });
 document.querySelectorAll('.nav[data-tab]').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));document.getElementById('btnAddEmpresa').addEventListener('click',addEmpresa);document.getElementById('btnAddHorario').addEventListener('click',adicionarHorarioPorBotao);document.getElementById('btnAddHorarioMes').addEventListener('click',aplicarHorarioMesTodo);document.getElementById('btnUpdate').addEventListener('click',render);document.getElementById('btnPreview').addEventListener('click',previewPDF);document.getElementById('menuPreview').addEventListener('click',previewPDF);document.getElementById('btnSave').addEventListener('click',savePDF);document.getElementById('menuSave').addEventListener('click',savePDF);document.getElementById('btnPrint').addEventListener('click',printPage);document.getElementById('btnLimpar').addEventListener('click',limparTabela);document.getElementById('menuPrint').addEventListener('click',printPage);empresaSelect.addEventListener('change',render);mesSelect.addEventListener('change',render);anoInput.addEventListener('input',render);
-meses.forEach((m,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=m;mesSelect.appendChild(op)});const now=new Date();mesSelect.value=String(now.getMonth());anoInput.value=now.getFullYear();carregarEmpresas('GEO AMBIENTE');render();
+meses.forEach((m,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=m;mesSelect.appendChild(op)});const now=new Date();mesSelect.value=String(now.getMonth());anoInput.value=now.getFullYear();recarregarEmpresasDoServidor('GEO AMBIENTE');render();
 logoWatermark.onload = render;
 logoWatermark.onerror = function(){ console.warn('logo nao carregou, seguindo sem ela'); render(); };
 
