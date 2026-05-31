@@ -1,0 +1,16 @@
+YTALSEG APONTAMENTO - VERSAO WEB (nuvem)
+
+O que e: a versao web do app de apontamento, para rodar no navegador
+do notebook e do celular (mesma URL), sem precisar instalar nada.
+
+Como gera PDF: pela impressao do navegador (botoes Visualizar/Salvar/Imprimir
+todos abrem a impressao - no PC salve como PDF, no celular use compartilhar/salvar PDF).
+
+Estrutura:
+  server.py          -> servidor web minimo (FastAPI) que serve o site
+  static/            -> o site de verdade (index.html, style.css, script.js)
+  requirements.txt   -> dependencias Python
+  railway.json       -> configuracao de deploy no Railway
+  Procfile           -> comando de inicio (reforco)
+
+Os dados (empresas) ficam salvos no navegador (localStorage), por aparelho.
