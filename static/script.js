@@ -7,7 +7,7 @@ const EMPRESAS_ANTIGO_KEY='ytalseg_empresas_apontamento';
 
 const canvas=document.getElementById('sheetCanvas'),ctx=canvas.getContext('2d');
 const logoWatermark = new Image();
-logoWatermark.src = '../assets/logo-watermark-clean.png';
+logoWatermark.src = 'assets/logo-watermark-clean.png';
 const empresaSelect=document.getElementById('empresaSelect'),mesSelect=document.getElementById('mesSelect'),anoInput=document.getElementById('anoInput'),listaEmpresas=document.getElementById('listaEmpresas'),novaEmpresa=document.getElementById('novaEmpresa');
 const horaDia=document.getElementById('horaDia'),servicoLocal=document.getElementById('servicoLocal'),horaDiurno=document.getElementById('horaDiurno'),horaNoturno=document.getElementById('horaNoturno');
 let horarios = {};
@@ -95,8 +95,8 @@ function drawWatermark(){
  const size = 980;
  const x = 22;
  const y = 325;
- if(logoWatermark.complete){
-   ctx.drawImage(logoWatermark, x, y, size, size);
+ if(logoWatermark.complete && logoWatermark.naturalWidth > 0){
+   try { ctx.drawImage(logoWatermark, x, y, size, size); } catch(e) { console.warn('logo nao desenhada:', e); }
  }
  ctx.restore();
 }
@@ -227,6 +227,7 @@ listaEmpresas.addEventListener('click',(e)=>{
 document.querySelectorAll('.nav[data-tab]').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));document.getElementById('btnAddEmpresa').addEventListener('click',addEmpresa);document.getElementById('btnAddHorario').addEventListener('click',adicionarHorarioPorBotao);document.getElementById('btnAddHorarioMes').addEventListener('click',aplicarHorarioMesTodo);document.getElementById('btnUpdate').addEventListener('click',render);document.getElementById('btnPreview').addEventListener('click',previewPDF);document.getElementById('menuPreview').addEventListener('click',previewPDF);document.getElementById('btnSave').addEventListener('click',savePDF);document.getElementById('menuSave').addEventListener('click',savePDF);document.getElementById('btnPrint').addEventListener('click',printPage);document.getElementById('menuPrint').addEventListener('click',printPage);empresaSelect.addEventListener('change',render);mesSelect.addEventListener('change',render);anoInput.addEventListener('input',render);
 meses.forEach((m,i)=>{const op=document.createElement('option');op.value=String(i);op.textContent=m;mesSelect.appendChild(op)});const now=new Date();mesSelect.value=String(now.getMonth());anoInput.value=now.getFullYear();carregarEmpresas('GEO AMBIENTE');render();
 logoWatermark.onload = render;
+logoWatermark.onerror = function(){ console.warn('logo nao carregou, seguindo sem ela'); render(); };
 
 
 canvas.addEventListener('click',(e)=>{
